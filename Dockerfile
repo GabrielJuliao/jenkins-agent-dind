@@ -49,7 +49,6 @@ ARG NPM_PREFIX="${HOME}/.npm"
 ENV AGENT_WORKDIR="${HOME}/agent" \
     CI=true \
     PATH="${NPM_PREFIX}/bin:${HOME}/.local/bin:${PATH}" \
-    JAVA_HOME="/usr/lib/jvm/temurin-11-jdk-amd64" \
     # locale and encoding \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en" \
@@ -66,7 +65,16 @@ ENV AGENT_WORKDIR="${HOME}/agent" \
     # Give 15s for services to stop \
     S6_SERVICES_GRACETIME=15000 \
     # Honor container env on CMD \
-    S6_KEEP_ENV=1
+    S6_KEEP_ENV=1 \
+    # Maven
+    MAVEN_VERSION="3.9.6" \
+    MAVEN_HOME="/opt/apache-maven" \
+    # Java
+    JAVA_8_HOME="/usr/lib/jvm/temurin-8-jdk-amd64" \
+    JAVA_11_HOME="/usr/lib/jvm/temurin-11-jdk-amd64" \
+    JAVA_17_HOME="/usr/lib/jvm/temurin-17-jdk-amd64" \
+    JAVA_21_HOME="/usr/lib/jvm/temurin-21-jdk-amd64" \
+    JAVA_HOME=$JAVA_11_HOME
 
 # create non-root user
 RUN group="${NON_ROOT_USER}"; \
@@ -90,11 +98,6 @@ RUN group="${NON_ROOT_USER}"; \
     # dismiss sudo welcome message \
     sudo -u "${NON_ROOT_USER}" sudo true
 
-# Instal maven
-RUN wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -O /tmp/apache-maven.tar.gz; \
-    tar -xz /tmp/apache-maven.tar.gz -P -C /opt && rm -rf /tmp/apache-maven.tar.gz; \
-    ln -s /opt/apache-maven-3.9.6 /opt/apache-maven; \
-    ln -s /opt/apache-maven/bin/mvn /usr/bin/mvn
 
 ENV MAVEN_HOME=/opt/apache-maven
 
@@ -160,10 +163,9 @@ RUN \
         sshpass \
         python3-pip \
         temurin-8-jdk \
+        temurin-11-jdk \
         temurin-17-jdk \
         temurin-21-jdk \
-        # sets jdk 11 as default
-        temurin-11-jdk \
         nodejs \
         yarn \
         kubectl \
@@ -204,8 +206,13 @@ RUN \
         containerd.io \
         docker-buildx-plugin \
         docker-compose-plugin; \
+    sudo update-alternatives --set java $JAVA_11_HOME; \
     ${SUDO_APT_GET} autoremove -yq; \
     sudo ${CLEAN_DATA}; \
+    # wget https://dlcdn.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz -O /tmp/apache-maven.tar.gz; \
+    # sudo tar -xzf /tmp/apache-maven.tar.gz -P -C /opt && rm -rf /tmp/apache-maven.tar.gz; \
+    # sudo ln -sf /opt/apache-maven-$MAVEN_VERSION $MAVEN_HOME; \
+    # sudo ln -sf $MAVEN_HOME/bin/mvn /usr/bin/mvn; \
     # setup docker \
     sudo usermod -aG docker "${NON_ROOT_USER}"; \
     ## setup docker-switch (docker-compose v1 compatibility) \
