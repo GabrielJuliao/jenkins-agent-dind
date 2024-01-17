@@ -90,6 +90,13 @@ RUN group="${NON_ROOT_USER}"; \
     # dismiss sudo welcome message \
     sudo -u "${NON_ROOT_USER}" sudo true
 
+# Instal maven
+RUN wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -O /tmp/apache-maven.tar.gz; \
+    tar -xz /tmp/apache-maven.tar.gz -P -C /opt && rm -rf /tmp/apache-maven.tar.gz; \
+    ln -s /opt/apache-maven-3.9.6 /opt/apache-maven; \
+    ln -s /opt/apache-maven/bin/mvn /usr/bin/mvn
+
+ENV MAVEN_HOME=/opt/apache-maven
 
 # use non-root user with sudo when needed
 USER "${NON_ROOT_USER}:${NON_ROOT_USER}"
@@ -152,6 +159,10 @@ RUN \
         rsync \
         sshpass \
         python3-pip \
+        temurin-8-jdk \
+        temurin-17-jdk \
+        temurin-21-jdk \
+        # sets jdk 11 as default
         temurin-11-jdk \
         nodejs \
         yarn \
@@ -159,7 +170,6 @@ RUN \
         jfrog-cli \
         jfrog-cli-v2-jf \
         shellcheck \
-        maven \
         ant \
         ant-contrib \
         zip \
